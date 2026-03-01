@@ -11,6 +11,9 @@ import ConsolePanel from './ConsolePanel';
 import EmptyState from './EmptyState';
 
 const getRunnerEndpoint = () => {
+    if (import.meta.env.VITE_RUNNER_URL) {
+        return `${import.meta.env.VITE_RUNNER_URL}/run`;
+    }
     const protocol = window.location.protocol;
     const host = window.location.hostname;
     return `${protocol}//${host}:4002/run`;

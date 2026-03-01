@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Layers, ArrowRight, Github, Code2, Cpu, Globe } from 'lucide-react';
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function Login({ onLogin, onSignup }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -12,50 +14,36 @@ export default function Login({ onLogin, onSignup }) {
         setError('');
 
         try {
-            // const formData = new FormData();
-            // formData.append('username', email);
-            // formData.append('password', password);
+            const formData = new FormData();
+            formData.append('username', email);
+            formData.append('password', password);
 
-            // const response = await fetch('http://localhost:8000/token', {
-            //     method: 'POST',
-            //     body: formData,
-            // });
+            const response = await fetch(`${API}/token`, {
+                method: 'POST',
+                body: formData,
+            });
 
-            // if (!response.ok) {
-            //     throw new Error('Incorrect email or password');
-            // }
+            if (!response.ok) {
+                throw new Error('Incorrect email or password');
+            }
 
-            // const data = await response.json();
-            // const token = data.access_token;
-
-            // MOCK LOGIN
-            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
-            console.log("Mocking login for:", email);
-            const token = "mock_jwt_token_" + Date.now();
+            const data = await response.json();
+            const token = data.access_token;
             localStorage.setItem('token', token);
 
             // Fetch user details
-            // const userResponse = await fetch('http://localhost:8000/users/me', {
-            //     headers: {
-            //         'Authorization': `Bearer ${token}`
-            //     }
-            // });
+            const userResponse = await fetch(`${API}/users/me`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-            // if (userResponse.ok) {
-            //     const userData = await userResponse.json();
-            //     onLogin(userData);
-            // } else {
-            //     onLogin(); // Fallback if user fetch fails but token succeeded (unlikely)
-            // }
-
-            // MOCK USER FETCH
-            const userData = {
-                id: 123,
-                email: email,
-                name: "User",
-                username: email.split('@')[0],
-            };
-            onLogin(userData);
+            if (userResponse.ok) {
+                const userData = await userResponse.json();
+                onLogin(userData);
+            } else {
+                onLogin();
+            }
 
         } catch (err) {
             setError(err.message);

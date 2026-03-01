@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Layers, ArrowRight, User, Mail, Lock, X, Github, Globe } from 'lucide-react';
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function Signup({ onLogin, onSignupSuccess }) {
     const [formData, setFormData] = useState({
         name: '',
@@ -44,17 +46,23 @@ export default function Signup({ onLogin, onSignupSuccess }) {
         }
 
         try {
-            // MOCK REGISTER
-            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
-            console.log("Mocking register for:", formData.email);
+            const response = await fetch(`${API}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: formData.email,
+                    name: formData.name,
+                    password: formData.password,
+                }),
+            });
 
-            const mockData = {
-                id: Math.floor(Math.random() * 1000),
-                email: formData.email,
-                name: formData.name,
-                username: formData.email.split('@')[0],
-            };
-            onSignupSuccess(mockData);
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.detail || 'Registration failed');
+            }
+
+            const userData = await response.json();
+            onSignupSuccess(userData);
 
         } catch (error) {
             setPasswordError(error.message);
